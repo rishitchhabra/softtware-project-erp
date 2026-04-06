@@ -1,0 +1,53 @@
+<%- include('../partials/layout-top') %>
+
+<div class="page-header">
+  <div><h1>📢 Announcements</h1><p class="page-header-subtitle"><%= announcements.length %> announcements</p></div>
+  <button class="btn btn-primary" onclick="openModal('addAnnouncementModal')">+ New Announcement</button>
+</div>
+
+<% if (announcements.length === 0) { %>
+  <div class="card"><div class="empty-state"><div class="empty-state-icon">📢</div><h3>No Announcements</h3><p>Post your first announcement.</p></div></div>
+<% } else { %>
+  <div class="grid" style="gap:var(--space-4);">
+    <% announcements.forEach(a => { %>
+    <div class="card animate-fade-in">
+      <div class="d-flex justify-between align-center mb-3">
+        <div class="d-flex align-center gap-3">
+          <h4><%= a.title %></h4>
+          <span class="badge badge-primary"><%= a.target_role || 'all' %></span>
+        </div>
+        <div class="d-flex align-center gap-2">
+          <span class="text-muted text-xs"><%= new Date(a.created_at).toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'}) %></span>
+          <form method="POST" action="/admin/announcements/<%= a.id %>/delete" id="delAnn<%= a.id %>" style="display:inline;">
+            <button type="button" class="btn btn-ghost btn-sm" style="color:var(--color-danger);" onclick="confirmDelete('Delete announcement?','delAnn<%= a.id %>')">🗑️</button>
+          </form>
+        </div>
+      </div>
+      <p style="margin:0;"><%= a.content %></p>
+    </div>
+    <% }) %>
+  </div>
+<% } %>
+
+<div class="modal-overlay" id="addAnnouncementModal">
+  <div class="modal">
+    <div class="modal-header"><h3>New Announcement</h3><button class="modal-close" onclick="closeModal('addAnnouncementModal')">✕</button></div>
+    <form method="POST" action="/admin/announcements">
+      <div class="modal-body">
+        <div class="form-group"><label class="form-label">Title</label><input type="text" name="title" class="form-control" required></div>
+        <div class="form-group"><label class="form-label">Content</label><textarea name="content" class="form-control" rows="4" required></textarea></div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Target Audience</label>
+            <select name="target_role" class="form-control"><option value="all">Everyone</option><option value="faculty">Faculty Only</option><option value="student">Students Only</option></select>
+          </div>
+          <div class="form-group"><label class="form-label">Specific Class (optional)</label>
+            <select name="target_class_id" class="form-control"><option value="">All Classes</option><% classes.forEach(c => { %><option value="<%= c.id %>"><%= c.name %></option><% }) %></select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer"><button type="button" class="btn btn-outline" onclick="closeModal('addAnnouncementModal')">Cancel</button><button type="submit" class="btn btn-primary">Post</button></div>
+    </form>
+  </div>
+</div>
+
+<%- include('../partials/layout-bottom') %>

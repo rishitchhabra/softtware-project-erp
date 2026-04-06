@@ -1,0 +1,72 @@
+<%- include('../partials/layout-top') %>
+
+<div class="dashboard-welcome animate-fade-in">
+  <h2><%= greeting %>, <%= user.full_name || 'Admin' %> 👋</h2>
+  <p>Here's what's happening at your institution today.</p>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card stat-primary animate-fade-in-up stagger-1">
+    <div class="stat-card-icon">👨‍🎓</div>
+    <div class="stat-card-value"><%= stats.students %></div>
+    <div class="stat-card-label">Total Students</div>
+  </div>
+  <div class="stat-card stat-info animate-fade-in-up stagger-2">
+    <div class="stat-card-icon">👨‍🏫</div>
+    <div class="stat-card-value"><%= stats.faculty %></div>
+    <div class="stat-card-label">Faculty Members</div>
+  </div>
+  <div class="stat-card stat-success animate-fade-in-up stagger-3">
+    <div class="stat-card-icon">📚</div>
+    <div class="stat-card-value"><%= stats.courses %></div>
+    <div class="stat-card-label">Active Courses</div>
+  </div>
+  <div class="stat-card stat-warning animate-fade-in-up stagger-4">
+    <div class="stat-card-icon">🏛️</div>
+    <div class="stat-card-value"><%= stats.classes %></div>
+    <div class="stat-card-label">Classes</div>
+  </div>
+</div>
+
+<div class="dashboard-grid">
+  <div class="card animate-fade-in-up stagger-5">
+    <div class="card-header">
+      <h3>📢 Recent Announcements</h3>
+      <a href="/admin/announcements" class="btn btn-ghost btn-sm">View All →</a>
+    </div>
+    <div class="card-body">
+      <% if (recentAnnouncements.length === 0) { %>
+        <div class="empty-state" style="padding: var(--space-8) 0;">
+          <div class="empty-state-icon">📭</div>
+          <h3>No Announcements Yet</h3>
+          <p>Create your first announcement to get started.</p>
+        </div>
+      <% } else { %>
+        <% recentAnnouncements.forEach(a => { %>
+          <div class="activity-item">
+            <div class="activity-dot blue"></div>
+            <div class="activity-content">
+              <div class="activity-text"><strong><%= a.title %></strong></div>
+              <div class="activity-time"><%= new Date(a.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) %> · <%= a.target_role || 'all' %></div>
+            </div>
+          </div>
+        <% }) %>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="card animate-fade-in-up stagger-6">
+    <div class="card-header">
+      <h3>⚡ Quick Actions</h3>
+    </div>
+    <div class="quick-actions">
+      <a href="/admin/students" class="quick-action-btn"><span class="quick-action-icon">👨‍🎓</span> Add New Student</a>
+      <a href="/admin/faculty" class="quick-action-btn"><span class="quick-action-icon">👨‍🏫</span> Add New Faculty</a>
+      <a href="/admin/courses" class="quick-action-btn"><span class="quick-action-icon">📚</span> Create Course</a>
+      <a href="/admin/classes" class="quick-action-btn"><span class="quick-action-icon">🏛️</span> Create Class</a>
+      <a href="/admin/announcements" class="quick-action-btn"><span class="quick-action-icon">📢</span> Post Announcement</a>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/layout-bottom') %>

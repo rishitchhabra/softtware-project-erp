@@ -1,0 +1,51 @@
+<%- include('../partials/layout-top') %>
+
+<div class="page-header">
+  <div><h1>📝 Assignments</h1><p class="page-header-subtitle"><%= assignments.length %> assignments</p></div>
+  <button class="btn btn-primary" onclick="openModal('addAssignmentModal')">+ Create Assignment</button>
+</div>
+
+<div class="card animate-fade-in">
+  <div class="table-wrapper">
+    <table class="data-table">
+      <thead><tr><th>Title</th><th>Course</th><th>Due Date</th><th>Max Marks</th><th>Status</th></tr></thead>
+      <tbody>
+        <% if (assignments.length === 0) { %>
+          <tr><td colspan="5" style="text-align:center;padding:var(--space-10);color:var(--color-text-muted);">No assignments yet.</td></tr>
+        <% } else { %>
+          <% assignments.forEach(a => { const now = new Date(); const due = new Date(a.due_date); const overdue = due < now; %>
+          <tr>
+            <td><strong><%= a.title %></strong></td>
+            <td><%= a.courses ? a.courses.title : '—' %></td>
+            <td><span class="badge <%= overdue ? 'badge-danger' : 'badge-primary' %>"><%= due.toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'}) %></span></td>
+            <td><%= a.max_marks %></td>
+            <td><span class="badge <%= overdue ? 'badge-danger' : 'badge-success' %>"><%= overdue ? 'Past Due' : 'Active' %></span></td>
+          </tr>
+          <% }) %>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal-overlay" id="addAssignmentModal">
+  <div class="modal">
+    <div class="modal-header"><h3>Create Assignment</h3><button class="modal-close" onclick="closeModal('addAssignmentModal')">✕</button></div>
+    <form method="POST" action="/faculty/assignments">
+      <div class="modal-body">
+        <div class="form-group"><label class="form-label">Course</label>
+          <select name="course_id" class="form-control" required><option value="">Select course</option><% myCourses.forEach(c => { %><option value="<%= c.id %>"><%= c.title %></option><% }) %></select>
+        </div>
+        <div class="form-group"><label class="form-label">Title</label><input type="text" name="title" class="form-control" required></div>
+        <div class="form-group"><label class="form-label">Description</label><textarea name="description" class="form-control" rows="3"></textarea></div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Due Date</label><input type="datetime-local" name="due_date" class="form-control" required></div>
+          <div class="form-group"><label class="form-label">Max Marks</label><input type="number" name="max_marks" class="form-control" value="100" min="1"></div>
+        </div>
+      </div>
+      <div class="modal-footer"><button type="button" class="btn btn-outline" onclick="closeModal('addAssignmentModal')">Cancel</button><button type="submit" class="btn btn-primary">Create</button></div>
+    </form>
+  </div>
+</div>
+
+<%- include('../partials/layout-bottom') %>

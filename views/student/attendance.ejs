@@ -1,0 +1,61 @@
+<%- include('../partials/layout-top') %>
+
+<div class="page-header"><div><h1>✅ My Attendance</h1><p class="page-header-subtitle">Last 30 days</p></div></div>
+
+<div class="stats-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: var(--space-6);">
+  <div class="stat-card stat-primary animate-fade-in-up stagger-1">
+    <div class="stat-card-icon">📊</div>
+    <div class="stat-card-value"><%= stats.total %></div>
+    <div class="stat-card-label">Total Days</div>
+  </div>
+  <div class="stat-card stat-success animate-fade-in-up stagger-2">
+    <div class="stat-card-icon">✅</div>
+    <div class="stat-card-value"><%= stats.present %></div>
+    <div class="stat-card-label">Present</div>
+  </div>
+  <div class="stat-card stat-danger animate-fade-in-up stagger-3">
+    <div class="stat-card-icon">❌</div>
+    <div class="stat-card-value"><%= stats.absent %></div>
+    <div class="stat-card-label">Absent</div>
+  </div>
+  <div class="stat-card stat-warning animate-fade-in-up stagger-4">
+    <div class="stat-card-icon">⏰</div>
+    <div class="stat-card-value"><%= stats.late %></div>
+    <div class="stat-card-label">Late</div>
+  </div>
+</div>
+
+<% if (stats.total > 0) { %>
+<div class="card mb-6 animate-fade-in">
+  <div class="card-header"><h4>Attendance Rate</h4></div>
+  <div class="d-flex align-center gap-4">
+    <div class="progress" style="flex:1;">
+      <div class="progress-bar <%= Math.round(((stats.present + stats.late) / stats.total) * 100) >= 75 ? 'success' : 'danger' %>" style="width:<%= Math.round(((stats.present + stats.late) / stats.total) * 100) %>%;"></div>
+    </div>
+    <span class="font-bold text-lg"><%= Math.round(((stats.present + stats.late) / stats.total) * 100) %>%</span>
+  </div>
+</div>
+<% } %>
+
+<div class="card animate-fade-in-up stagger-5">
+  <div class="card-header"><h3>📋 Attendance History</h3></div>
+  <div class="table-wrapper">
+    <table class="data-table">
+      <thead><tr><th>Date</th><th>Status</th></tr></thead>
+      <tbody>
+        <% if (records.length === 0) { %>
+          <tr><td colspan="2" style="text-align:center;padding:var(--space-8);color:var(--color-text-muted);">No attendance records.</td></tr>
+        <% } else { %>
+          <% records.forEach(r => { %>
+          <tr>
+            <td><%= new Date(r.attendance_date).toLocaleDateString('en-IN', {weekday:'short',day:'numeric',month:'short',year:'numeric'}) %></td>
+            <td><span class="badge <%= r.status === 'present' ? 'badge-success' : r.status === 'absent' ? 'badge-danger' : 'badge-warning' %>"><%= r.status %></span></td>
+          </tr>
+          <% }) %>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<%- include('../partials/layout-bottom') %>

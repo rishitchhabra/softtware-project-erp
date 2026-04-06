@@ -1,0 +1,48 @@
+/* Auth Pages */
+.auth-page {
+  min-height: 100vh; display: flex; align-items: center; justify-content: center;
+  background: var(--gradient-bg); padding: var(--space-6); position: relative; overflow: hidden;
+}
+.auth-page::before {
+  content: ''; position: absolute; top: -20%; left: -10%; width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(79,140,255,0.06) 0%, transparent 70%);
+  border-radius: 50%;
+}
+.auth-page::after {
+  content: ''; position: absolute; bottom: -20%; right: -10%; width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(139,92,246,0.05) 0%, transparent 70%);
+  border-radius: 50%;
+}
+.auth-card {
+  width: 100%; max-width: 440px; background: var(--gradient-card);
+  backdrop-filter: blur(16px); border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-2xl); padding: var(--space-10);
+  box-shadow: var(--shadow-xl); position: relative; z-index: 1;
+  animation: fadeInUp 0.6s ease;
+}
+.auth-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(79,140,255,0.3), transparent);
+}
+.auth-logo {
+  display: flex; align-items: center; justify-content: center; gap: var(--space-3);
+  margin-bottom: var(--space-8);
+}
+.auth-logo-icon {
+  width: 52px; height: 52px; background: var(--gradient-primary); border-radius: var(--radius-xl);
+  display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: white;
+}
+.auth-logo-text { font-size: var(--font-size-xl); font-weight: var(--font-weight-bold); }
+.auth-logo-text span { display: block; font-size: var(--font-size-xs); color: var(--color-text-muted); font-weight: var(--font-weight-normal); }
+.auth-title { text-align: center; margin-bottom: var(--space-8); }
+.auth-title h1 { font-size: var(--font-size-2xl); margin-bottom: var(--space-2); }
+.auth-title p { color: var(--color-text-muted); margin: 0; font-size: var(--font-size-sm); }
+.auth-footer { text-align: center; margin-top: var(--space-6); font-size: var(--font-size-sm); color: var(--color-text-muted); }
+.auth-footer a { color: var(--color-primary); font-weight: var(--font-weight-semibold); }
+.auth-divider {
+  display: flex; align-items: center; gap: var(--space-4); margin: var(--space-6) 0;
+  color: var(--color-text-muted); font-size: var(--font-size-xs);
+}
+.auth-divider::before, .auth-divider::after {
+  content: ''; flex: 1; height: 1px; background: var(--color-border-light);
+}

@@ -1,0 +1,52 @@
+<%- include('../partials/layout-top') %>
+
+<div class="page-header">
+  <div><h1>🏛️ Class Management</h1><p class="page-header-subtitle"><%= classes.length %> classes</p></div>
+  <button class="btn btn-primary" onclick="openModal('addClassModal')">+ Create Class</button>
+</div>
+
+<div class="grid grid-auto-fill">
+  <% if (classes.length === 0) { %>
+    <div class="card"><div class="empty-state"><div class="empty-state-icon">🏛️</div><h3>No Classes Yet</h3><p>Create your first class to get started.</p></div></div>
+  <% } else { %>
+    <% classes.forEach(c => { %>
+    <div class="card animate-fade-in-up">
+      <div class="d-flex justify-between align-center mb-4">
+        <h3><%= c.name %></h3>
+        <form method="POST" action="/admin/classes/<%= c.id %>/delete" id="delClass<%= c.id %>" style="display:inline;">
+          <button type="button" class="btn btn-ghost btn-sm" style="color:var(--color-danger);" onclick="confirmDelete('Delete class <%= c.name %>?','delClass<%= c.id %>')">🗑️</button>
+        </form>
+      </div>
+      <div class="d-flex flex-wrap gap-2 mb-3">
+        <% if (c.section) { %><span class="badge badge-primary">Section: <%= c.section %></span><% } %>
+        <% if (c.grade_level) { %><span class="badge badge-info">Grade <%= c.grade_level %></span><% } %>
+      </div>
+    </div>
+    <% }) %>
+  <% } %>
+</div>
+
+<div class="modal-overlay" id="addClassModal">
+  <div class="modal">
+    <div class="modal-header"><h3>Create Class</h3><button class="modal-close" onclick="closeModal('addClassModal')">✕</button></div>
+    <form method="POST" action="/admin/classes">
+      <div class="modal-body">
+        <div class="form-group"><label class="form-label">Class Name</label><input type="text" name="name" class="form-control" placeholder="e.g. 10-A" required></div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Section</label><input type="text" name="section" class="form-control" placeholder="e.g. A"></div>
+          <div class="form-group"><label class="form-label">Grade Level</label><input type="number" name="grade_level" class="form-control" placeholder="e.g. 10" min="1" max="12"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Class Teacher</label>
+          <select name="class_teacher_id" class="form-control">
+            <option value="">Select teacher (optional)</option>
+            <% facultyList.forEach(f => { %><option value="<%= f.id %>"><%= f.full_name %></option><% }) %>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer"><button type="button" class="btn btn-outline" onclick="closeModal('addClassModal')">Cancel</button><button type="submit" class="btn btn-primary">Create Class</button></div>
+    </form>
+  </div>
+</div>
+
+<%- include('../partials/layout-bottom') %>

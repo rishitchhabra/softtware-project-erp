@@ -1,0 +1,58 @@
+<%- include('../partials/layout-top') %>
+
+<div class="dashboard-welcome animate-fade-in">
+  <h2><%= greeting %>, <%= user.full_name || 'Faculty' %> 👋</h2>
+  <p>Welcome to your teaching portal. Here's your overview.</p>
+</div>
+
+<div class="stats-grid" style="grid-template-columns: repeat(3, 1fr);">
+  <div class="stat-card stat-primary animate-fade-in-up stagger-1">
+    <div class="stat-card-icon">📚</div>
+    <div class="stat-card-value"><%= myCourses.length %></div>
+    <div class="stat-card-label">My Courses</div>
+  </div>
+  <div class="stat-card stat-warning animate-fade-in-up stagger-2">
+    <div class="stat-card-icon">📝</div>
+    <div class="stat-card-value"><%= recentAssignments.length %></div>
+    <div class="stat-card-label">Active Assignments</div>
+  </div>
+  <div class="stat-card stat-info animate-fade-in-up stagger-3">
+    <div class="stat-card-icon">📢</div>
+    <div class="stat-card-value"><%= announcements.length %></div>
+    <div class="stat-card-label">Announcements</div>
+  </div>
+</div>
+
+<div class="dashboard-grid">
+  <div class="card animate-fade-in-up stagger-4">
+    <div class="card-header"><h3>📚 My Courses</h3><a href="/faculty/courses" class="btn btn-ghost btn-sm">View All →</a></div>
+    <div class="card-body">
+      <% if (myCourses.length === 0) { %>
+        <div class="empty-state" style="padding:var(--space-6) 0;"><p class="text-muted">No courses assigned yet. Contact admin.</p></div>
+      <% } else { %>
+        <% myCourses.forEach(c => { %>
+        <a href="/faculty/courses/<%= c.id %>" class="list-item">
+          <div class="avatar" style="background:var(--gradient-info);">📚</div>
+          <div class="list-item-content">
+            <div class="list-item-title"><%= c.title %></div>
+            <div class="list-item-subtitle"><%= c.code || '' %> <% if (c.classes) { %>· <%= c.classes.name %><% } %></div>
+          </div>
+          <span class="badge badge-success"><%= c.status %></span>
+        </a>
+        <% }) %>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="card animate-fade-in-up stagger-5">
+    <div class="card-header"><h3>⚡ Quick Actions</h3></div>
+    <div class="quick-actions">
+      <a href="/faculty/courses" class="quick-action-btn"><span class="quick-action-icon">📚</span> Manage Courses</a>
+      <a href="/faculty/assignments" class="quick-action-btn"><span class="quick-action-icon">📝</span> Create Assignment</a>
+      <a href="/faculty/grades" class="quick-action-btn"><span class="quick-action-icon">📈</span> Grade Submissions</a>
+      <a href="/faculty/attendance" class="quick-action-btn"><span class="quick-action-icon">✅</span> Mark Attendance</a>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/layout-bottom') %>

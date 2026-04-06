@@ -1,0 +1,703 @@
+<%- include('../partials/layout-top') %>
+
+<div class="page-header">
+  <div><h1>📅 Timetable Management</h1><p class="page-header-subtitle">Generate and manage class timetables</p></div>
+</div>
+
+<!-- Loading State -->
+<div id="tt-loading" class="card" style="text-align:center;padding:var(--space-10);">
+  <div style="font-size:3rem;">⏳</div>
+  <h3 style="margin-top:var(--space-4);">Loading Timetable Data...</h3>
+</div>
+
+<!-- Main Content (hidden until loaded) -->
+<div id="tt-app" style="display:none;">
+
+  <!-- Tab Navigation -->
+  <div class="card mb-4" style="padding:var(--space-2);">
+    <div class="d-flex gap-2" style="flex-wrap:wrap;">
+      <button class="btn btn-primary btn-sm tt-tab active" data-tab="timetable" onclick="switchTab('timetable')">📅 Timetable</button>
+      <button class="btn btn-outline btn-sm tt-tab" data-tab="sections" onclick="switchTab('sections')">🏛️ Sections</button>
+      <button class="btn btn-outline btn-sm tt-tab" data-tab="subjects" onclick="switchTab('subjects')">📚 Course Mapping</button>
+      <button class="btn btn-outline btn-sm tt-tab" data-tab="teachers" onclick="switchTab('teachers')">👨‍🏫 Faculty Mapping</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- TAB: TIMETABLE                                      -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div id="tab-timetable" class="tt-tab-content">
+    <!-- Class/Section Selector -->
+    <div class="card mb-4 animate-fade-in" id="section-selector">
+      <div class="card-header"><h3>Select Class & Section</h3></div>
+      <div class="card-body" id="class-section-list"></div>
+    </div>
+
+    <!-- Timetable View (hidden until section selected) -->
+    <div id="timetable-view" style="display:none;">
+      <div class="d-flex align-center justify-between mb-4" style="flex-wrap:wrap;gap:var(--space-3);">
+        <div>
+          <h2 id="tt-section-title" style="margin:0;"></h2>
+          <p class="text-muted text-sm" id="tt-mode-hint"></p>
+        </div>
+        <div class="d-flex gap-2" style="flex-wrap:wrap;">
+          <button class="btn btn-outline btn-sm" onclick="changeSection()">← Change Section</button>
+          <div class="d-flex gap-1" style="background:var(--color-bg-tertiary);border-radius:var(--radius-lg);padding:3px;">
+            <button id="mode-create" class="btn btn-sm btn-primary" onclick="setMode('create')" style="font-size:0.8rem;">✏️ Create</button>
+            <button id="mode-generate" class="btn btn-sm btn-outline" onclick="setMode('generate')" style="font-size:0.8rem;border:none;">⚡ Generate</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Generate Panel -->
+      <div id="generate-panel" class="card mb-4" style="display:none;border-color:var(--color-primary);">
+        <div class="card-header"><h3>📋 Subject Requirements & Teacher Selection</h3></div>
+        <div class="card-body">
+          <p class="text-muted text-sm mb-4">Select one teacher per subject. The algorithm will place periods to avoid conflicts.</p>
+          <div class="table-wrapper"><table class="data-table" id="generate-reqs-table"><thead><tr><th>Subject</th><th>Periods/Week</th><th>Assign Teacher</th><th>Status</th></tr></thead><tbody></tbody></table></div>
+          <div class="d-flex align-center justify-between mt-4" style="flex-wrap:wrap;gap:var(--space-3);">
+            <span class="text-muted text-sm" id="generate-summary"></span>
+            <button class="btn btn-primary" id="btn-generate" onclick="generateTimetable()" disabled>⚡ Generate Timetable</button>
+          </div>
+          <div id="generate-warnings" style="display:none;" class="mt-3"></div>
+        </div>
+      </div>
+
+      <!-- Generated Preview Actions -->
+      <div id="generated-actions" class="card mb-4" style="display:none;border-color:var(--color-success);">
+        <div class="card-body d-flex align-center justify-between" style="flex-wrap:wrap;gap:var(--space-3);">
+          <div><p style="font-weight:600;color:var(--color-success);margin:0;">✅ Timetable generated — preview below</p><div id="gen-warnings-inline" class="mt-2"></div></div>
+          <div class="d-flex gap-2">
+            <button class="btn btn-outline btn-sm" onclick="discardGenerated()">Discard</button>
+            <button class="btn btn-warning btn-sm" onclick="regenerate()">🔄 Re-generate</button>
+            <button class="btn btn-success btn-sm" onclick="applyGenerated()">💾 Apply & Save</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- The Grid -->
+      <div class="card mb-4 animate-fade-in">
+        <div class="table-wrapper">
+          <table class="data-table" id="timetable-grid" style="table-layout:fixed;">
+            <thead id="grid-head"></thead>
+            <tbody id="grid-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Period Count Summary -->
+      <div class="card animate-fade-in-up">
+        <div class="card-header"><h3>📊 Period Count by Subject</h3></div>
+        <div class="card-body"><div id="period-summary" class="grid grid-auto-fill" style="gap:var(--space-3);"></div></div>
+      </div>
+
+      <!-- Save/Discard bar for Create mode -->
+      <div id="save-bar" class="card mt-4" style="display:none;border-color:var(--color-warning);">
+        <div class="card-body d-flex align-center justify-between">
+          <span style="color:var(--color-warning);font-weight:600;">⚠️ You have unsaved changes</span>
+          <div class="d-flex gap-2">
+            <button class="btn btn-outline btn-sm" onclick="discardChanges()">✕ Discard</button>
+            <button class="btn btn-success btn-sm" onclick="saveChanges()">💾 Save Changes</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- TAB: SECTIONS                                       -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div id="tab-sections" class="tt-tab-content" style="display:none;">
+    <div class="card animate-fade-in">
+      <div class="card-header d-flex align-center justify-between"><h3>🏛️ Class Sections (Batches)</h3></div>
+      <div class="card-body" id="sections-manager"></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- TAB: COURSE MAPPING                                 -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div id="tab-subjects" class="tt-tab-content" style="display:none;">
+    <div class="card animate-fade-in">
+      <div class="card-header"><h3>📚 Course → Class Mapping (Periods/Week)</h3></div>
+      <div class="card-body">
+        <p class="text-muted text-sm mb-4">Assign courses to classes and set periods per week. Courses will auto-inherit to all sections of the class.</p>
+        <div id="subject-class-map"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- TAB: FACULTY MAPPING                                -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div id="tab-teachers" class="tt-tab-content" style="display:none;">
+    <div class="card animate-fade-in">
+      <div class="card-header"><h3>👨‍🏫 Faculty → Course → Class Mapping</h3></div>
+      <div class="card-body">
+        <p class="text-muted text-sm mb-4">Define which faculty can teach which course in which class. This is used by the generate algorithm.</p>
+        <div id="teacher-map-manager"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Assign Modal -->
+<div class="modal-overlay" id="assignModal">
+  <div class="modal">
+    <div class="modal-header"><h3 id="assign-modal-title">Assign Period</h3><button class="modal-close" onclick="closeModal('assignModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Course</label>
+        <select class="form-control" id="assign-subject" onchange="onSubjectChange()"><option value="">Select Course</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Faculty</label>
+        <select class="form-control" id="assign-teacher"><option value="">Select Faculty</option></select>
+      </div>
+    </div>
+    <div class="modal-footer d-flex justify-between">
+      <button class="btn btn-danger btn-sm" onclick="clearCell()">Clear Cell</button>
+      <div class="d-flex gap-2">
+        <button class="btn btn-outline" onclick="closeModal('assignModal')">Cancel</button>
+        <button class="btn btn-primary" onclick="assignCell()">Assign</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.tt-tab-content { min-height: 200px; }
+#timetable-grid th, #timetable-grid td { text-align: center; vertical-align: middle; font-size: 0.85rem; }
+#timetable-grid td.tt-cell { cursor: pointer; transition: background 0.15s; min-height: 65px; padding: 6px 4px; }
+#timetable-grid td.tt-cell:hover { background: var(--color-primary-light) !important; }
+#timetable-grid td.tt-filled { background: rgba(245, 158, 11, 0.15); border-left: 3px solid var(--color-warning); }
+#timetable-grid td.tt-lunch { background: rgba(245, 158, 11, 0.08); color: var(--color-warning); font-size: 0.75rem; }
+.tt-sub-name { font-weight: 600; font-size: 0.8rem; color: var(--color-text-primary); }
+.tt-teach-name { font-size: 0.7rem; color: var(--color-text-muted); margin-top: 2px; }
+.tt-tab.active { background: var(--color-primary) !important; color: white !important; border-color: var(--color-primary) !important; }
+.section-card { padding: var(--space-3) var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-md); cursor: pointer; transition: all 0.2s; }
+.section-card:hover { border-color: var(--color-primary); background: var(--color-primary-light); }
+.section-card.active { border-color: var(--color-primary); background: var(--color-primary-light); box-shadow: 0 0 0 2px var(--color-primary); }
+.summary-card { padding: var(--space-3); border-radius: var(--radius-md); border-left: 4px solid; }
+.summary-card.matched { background: rgba(16,185,129,0.1); border-color: var(--color-success); }
+.summary-card.under { background: rgba(245,158,11,0.1); border-color: var(--color-warning); }
+.summary-card.over { background: rgba(239,68,68,0.1); border-color: var(--color-danger); }
+</style>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════
+let DATA = { classes: [], subjects: [], teachers: [], teacherSubjectMap: [], timetable: {}, DAYS: [], PERIODS: [] };
+let selectedClassId = null, selectedSectionId = null;
+let mode = 'create'; // 'create' or 'generate'
+let pendingChanges = {}; // { [day]: { [period]: { subjectId, teacherId } } }
+let generatedGrid = null;
+let generateWarnings = [];
+let assignCell_day = null, assignCell_period = null;
+let teacherSelections = {}; // for generate panel
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+async function loadData() {
+  try {
+    const resp = await fetch('/api/tt/data');
+    DATA = await resp.json();
+    document.getElementById('tt-loading').style.display = 'none';
+    document.getElementById('tt-app').style.display = '';
+    renderClassSectionSelector();
+    renderSectionsManager();
+    renderSubjectClassMap();
+    renderTeacherMap();
+  } catch (err) {
+    document.getElementById('tt-loading').innerHTML = '<div style="color:var(--color-danger);">❌ Failed to load data: ' + err.message + '</div>';
+  }
+}
+loadData();
+
+// ═══════════════════════════════════════════════════════
+// TABS
+// ═══════════════════════════════════════════════════════
+function switchTab(tab) {
+  document.querySelectorAll('.tt-tab-content').forEach(el => el.style.display = 'none');
+  document.querySelectorAll('.tt-tab').forEach(el => { el.classList.remove('active'); el.classList.remove('btn-primary'); el.classList.add('btn-outline'); });
+  document.getElementById('tab-' + tab).style.display = '';
+  const btn = document.querySelector(`.tt-tab[data-tab="${tab}"]`);
+  btn.classList.add('active', 'btn-primary'); btn.classList.remove('btn-outline');
+}
+
+// ═══════════════════════════════════════════════════════
+// CLASS/SECTION SELECTOR
+// ═══════════════════════════════════════════════════════
+function renderClassSectionSelector() {
+  const container = document.getElementById('class-section-list');
+  if (DATA.classes.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:var(--space-8);"><div style="font-size:3rem;">📅</div><h3>No Classes Found</h3><p class="text-muted">Create classes first, then add sections in the Sections tab.</p></div>';
+    return;
+  }
+  let html = '<div class="grid grid-auto-fill" style="gap:var(--space-3);">';
+  for (const cls of DATA.classes) {
+    if (cls.sections.length === 0) {
+      html += `<div class="section-card" style="opacity:0.5;cursor:default;"><strong>${cls.name}</strong><div class="text-muted text-sm">No sections — add in Sections tab</div></div>`;
+    } else {
+      for (const sec of cls.sections) {
+        html += `<div class="section-card" onclick="selectSection('${cls.id}','${sec.id}')"><strong>${cls.name}</strong><div class="text-sm" style="color:var(--color-primary);">Section ${sec.name}</div><div class="text-muted" style="font-size:0.7rem;">${sec.subjects.length} subject(s)</div></div>`;
+      }
+    }
+  }
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+function selectSection(classId, sectionId) {
+  selectedClassId = classId; selectedSectionId = sectionId;
+  pendingChanges = {}; generatedGrid = null; generateWarnings = [];
+  const cls = DATA.classes.find(c => c.id === classId);
+  const sec = cls?.sections.find(s => s.id === sectionId);
+  document.getElementById('tt-section-title').textContent = cls.name + ' — Section ' + sec.name;
+  document.getElementById('section-selector').style.display = 'none';
+  document.getElementById('timetable-view').style.display = '';
+  setMode('create');
+  renderGrid();
+  renderPeriodSummary();
+  renderGeneratePanel();
+}
+
+function changeSection() {
+  selectedClassId = null; selectedSectionId = null;
+  document.getElementById('section-selector').style.display = '';
+  document.getElementById('timetable-view').style.display = 'none';
+}
+
+// ═══════════════════════════════════════════════════════
+// MODE
+// ═══════════════════════════════════════════════════════
+function setMode(m) {
+  mode = m; generatedGrid = null;
+  document.getElementById('mode-create').className = 'btn btn-sm ' + (m === 'create' ? 'btn-primary' : 'btn-outline');
+  document.getElementById('mode-generate').className = 'btn btn-sm ' + (m === 'generate' ? 'btn-primary' : 'btn-outline');
+  document.getElementById('mode-generate').style.border = m === 'generate' ? '' : 'none';
+  document.getElementById('mode-create').style.border = m === 'create' ? '' : 'none';
+  document.getElementById('tt-mode-hint').textContent = m === 'create' ? 'Click on a cell to assign subject and teacher' : 'Auto-generate timetable from your setup';
+  document.getElementById('generate-panel').style.display = m === 'generate' ? '' : 'none';
+  document.getElementById('generated-actions').style.display = 'none';
+  renderGrid();
+  renderPeriodSummary();
+}
+
+// ═══════════════════════════════════════════════════════
+// TIMETABLE GRID
+// ═══════════════════════════════════════════════════════
+function getCellData(day, period) {
+  if (mode === 'generate' && generatedGrid) return generatedGrid[day]?.[period] || null;
+  // Merged: saved + pending
+  const saved = DATA.timetable[selectedSectionId]?.[day]?.[period] || null;
+  const pending = pendingChanges[day]?.[period];
+  if (pending !== undefined) return pending; // could be null (cleared)
+  return saved;
+}
+
+function getSubject(id) { return DATA.subjects.find(s => s.id === id); }
+function getTeacher(id) { return DATA.teachers.find(t => t.id === id); }
+
+function renderGrid() {
+  const DAYS = DATA.DAYS || ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const PERIODS = DATA.PERIODS || [1,2,3,4,'Lunch',5,6,7,8];
+  // Header
+  let headHtml = '<tr><th style="width:90px;">Day/Period</th>';
+  for (const p of PERIODS) {
+    headHtml += p === 'Lunch' ? '<th style="background:rgba(245,158,11,0.15);color:var(--color-warning);width:50px;">🍽️</th>' : `<th>P${p}</th>`;
+  }
+  headHtml += '</tr>';
+  document.getElementById('grid-head').innerHTML = headHtml;
+
+  // Body
+  let bodyHtml = '';
+  for (const day of DAYS) {
+    bodyHtml += `<tr><td style="font-weight:600;background:var(--color-bg-secondary);text-align:left;padding-left:var(--space-3);">${day.substring(0,3)}</td>`;
+    for (const period of PERIODS) {
+      if (period === 'Lunch') {
+        bodyHtml += '<td class="tt-lunch">Lunch</td>';
+        continue;
+      }
+      const cell = getCellData(day, String(period));
+      if (cell && cell.subjectId) {
+        const sub = getSubject(cell.subjectId);
+        const teach = getTeacher(cell.teacherId);
+        bodyHtml += `<td class="tt-cell tt-filled" onclick="onCellClick('${day}','${period}')"><div class="tt-sub-name">${sub?.name || '?'}</div><div class="tt-teach-name">${teach?.name || '?'}</div></td>`;
+      } else {
+        bodyHtml += `<td class="tt-cell" onclick="onCellClick('${day}','${period}')"><span style="color:var(--color-text-muted);font-size:1.2rem;">+</span></td>`;
+      }
+    }
+    bodyHtml += '</tr>';
+  }
+  document.getElementById('grid-body').innerHTML = bodyHtml;
+  updateSaveBar();
+}
+
+function renderPeriodSummary() {
+  const sec = DATA.classes.find(c => c.id === selectedClassId)?.sections.find(s => s.id === selectedSectionId);
+  if (!sec) return;
+  const DAYS = DATA.DAYS; const PERIODS = DATA.PERIODS;
+  let html = '';
+  for (const subId of sec.subjects) {
+    const sub = getSubject(subId);
+    if (!sub) continue;
+    let count = 0;
+    for (const day of DAYS) {
+      for (const p of PERIODS) {
+        if (p === 'Lunch') continue;
+        const cell = getCellData(day, String(p));
+        if (cell?.subjectId === subId) count++;
+      }
+    }
+    const required = sub.sectionPeriods?.[selectedSectionId] ?? sub.classPeriods?.[selectedClassId] ?? 0;
+    const isMatch = required > 0 && count === required;
+    const isOver = required > 0 && count > required;
+    const cls = isMatch ? 'matched' : (isOver ? 'over' : 'under');
+    const label = required > 0 ? (isMatch ? '✓ matched' : isOver ? `over by ${count-required}` : `need ${required-count} more`) : `${count} period(s)`;
+    html += `<div class="summary-card ${cls}"><div style="font-weight:600;">${sub.name}</div><div class="d-flex align-center gap-2 mt-1"><span style="font-size:1.5rem;font-weight:700;">${count}</span>${required > 0 ? '<span class="text-muted">/ ' + required + '</span>' : ''}</div><div class="text-sm text-muted">${label}</div></div>`;
+  }
+  document.getElementById('period-summary').innerHTML = html || '<p class="text-muted">No subjects assigned to this section.</p>';
+}
+
+// ═══════════════════════════════════════════════════════
+// CELL CLICK (CREATE MODE)
+// ═══════════════════════════════════════════════════════
+function onCellClick(day, period) {
+  if (mode !== 'create') return;
+  assignCell_day = day; assignCell_period = period;
+  document.getElementById('assign-modal-title').textContent = `Assign — ${day}, Period ${period}`;
+  // Populate subjects
+  const sec = DATA.classes.find(c => c.id === selectedClassId)?.sections.find(s => s.id === selectedSectionId);
+  let subHtml = '<option value="">Select Course</option>';
+  for (const subId of (sec?.subjects || [])) {
+    const sub = getSubject(subId);
+    if (sub) subHtml += `<option value="${sub.id}">${sub.name}</option>`;
+  }
+  document.getElementById('assign-subject').innerHTML = subHtml;
+  document.getElementById('assign-teacher').innerHTML = '<option value="">Select Faculty</option>';
+  // Pre-fill if cell has data
+  const cell = getCellData(day, String(period));
+  if (cell?.subjectId) {
+    document.getElementById('assign-subject').value = cell.subjectId;
+    onSubjectChange();
+    setTimeout(() => { if (cell.teacherId) document.getElementById('assign-teacher').value = cell.teacherId; }, 50);
+  }
+  openModal('assignModal');
+}
+
+function onSubjectChange() {
+  const subId = document.getElementById('assign-subject').value;
+  let html = '<option value="">Select Faculty</option>';
+  if (subId) {
+    const available = DATA.teacherSubjectMap.filter(m => m.subjectId === subId && m.classId === selectedClassId && (!m.sectionId || m.sectionId === selectedSectionId));
+    const teacherIds = [...new Set(available.map(m => m.teacherId))];
+    for (const tid of teacherIds) {
+      const t = getTeacher(tid);
+      if (t) html += `<option value="${t.id}">${t.name} (${t.teacherCode})</option>`;
+    }
+  }
+  document.getElementById('assign-teacher').innerHTML = html;
+}
+
+function assignCell() {
+  const subId = document.getElementById('assign-subject').value;
+  const teachId = document.getElementById('assign-teacher').value;
+  if (!subId || !teachId) return alert('Please select both course and faculty');
+  if (!pendingChanges[assignCell_day]) pendingChanges[assignCell_day] = {};
+  pendingChanges[assignCell_day][assignCell_period] = { subjectId: subId, teacherId: teachId };
+  closeModal('assignModal');
+  renderGrid(); renderPeriodSummary();
+}
+
+function clearCell() {
+  if (!pendingChanges[assignCell_day]) pendingChanges[assignCell_day] = {};
+  pendingChanges[assignCell_day][assignCell_period] = null;
+  closeModal('assignModal');
+  renderGrid(); renderPeriodSummary();
+}
+
+function updateSaveBar() {
+  const hasPending = Object.keys(pendingChanges).length > 0;
+  document.getElementById('save-bar').style.display = (mode === 'create' && hasPending) ? '' : 'none';
+}
+
+async function saveChanges() {
+  const entries = [];
+  for (const day in pendingChanges) {
+    for (const period in pendingChanges[day]) {
+      const cell = pendingChanges[day][period];
+      entries.push({ sectionId: selectedSectionId, day, period: String(period), subjectId: cell?.subjectId || null, teacherId: cell?.teacherId || null });
+    }
+  }
+  if (entries.length === 0) return;
+  try {
+    await fetch('/api/tt/timetable', { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({entries}) });
+    // Merge into local data
+    if (!DATA.timetable[selectedSectionId]) DATA.timetable[selectedSectionId] = {};
+    for (const day in pendingChanges) {
+      if (!DATA.timetable[selectedSectionId][day]) DATA.timetable[selectedSectionId][day] = {};
+      for (const period in pendingChanges[day]) {
+        DATA.timetable[selectedSectionId][day][period] = pendingChanges[day][period];
+      }
+    }
+    pendingChanges = {};
+    renderGrid(); renderPeriodSummary();
+  } catch (err) { alert('Failed to save: ' + err.message); }
+}
+
+function discardChanges() { pendingChanges = {}; renderGrid(); renderPeriodSummary(); }
+
+// ═══════════════════════════════════════════════════════
+// GENERATE
+// ═══════════════════════════════════════════════════════
+function renderGeneratePanel() {
+  const sec = DATA.classes.find(c => c.id === selectedClassId)?.sections.find(s => s.id === selectedSectionId);
+  if (!sec) return;
+  teacherSelections = {};
+  const tbody = document.querySelector('#generate-reqs-table tbody');
+  let html = '', totalPeriods = 0, hasIssues = false;
+
+  for (const subId of sec.subjects) {
+    const sub = getSubject(subId);
+    if (!sub) continue;
+    const ppw = sub.sectionPeriods?.[selectedSectionId] ?? sub.classPeriods?.[selectedClassId] ?? 0;
+    totalPeriods += ppw;
+    const mappedTeachers = [...new Set(DATA.teacherSubjectMap.filter(m => m.subjectId === subId && m.classId === selectedClassId && (!m.sectionId || m.sectionId === selectedSectionId)).map(m => m.teacherId))].map(tid => getTeacher(tid)).filter(Boolean);
+    const issue = ppw === 0 || mappedTeachers.length === 0;
+    if (issue) hasIssues = true;
+
+    // Auto-select if only one teacher
+    if (mappedTeachers.length === 1) teacherSelections[subId] = mappedTeachers[0].id;
+
+    let teachHtml;
+    if (mappedTeachers.length === 0) {
+      teachHtml = '<span class="badge badge-danger">No faculty mapped</span>';
+    } else if (mappedTeachers.length === 1) {
+      teachHtml = `<span class="badge badge-success">${mappedTeachers[0].name} (auto)</span>`;
+    } else {
+      teachHtml = `<select class="form-control" onchange="teacherSelections['${subId}']=this.value;updateGenerateBtn()" style="font-size:0.85rem;"><option value="">— Select —</option>`;
+      for (const t of mappedTeachers) teachHtml += `<option value="${t.id}">${t.name} (${t.teacherCode})</option>`;
+      teachHtml += '</select>';
+    }
+
+    const statusIcon = issue ? '⚠️' : (mappedTeachers.length === 1 || teacherSelections[subId] ? '✅' : '⚠️');
+    html += `<tr style="${issue ? 'background:rgba(239,68,68,0.05);' : ''}"><td style="font-weight:600;">${sub.name}</td><td><span class="badge ${ppw > 0 ? 'badge-primary' : 'badge-danger'}">${ppw > 0 ? ppw : 'Not set'}</span></td><td>${teachHtml}</td><td>${statusIcon}</td></tr>`;
+  }
+  tbody.innerHTML = html || '<tr><td colspan="4" class="text-muted" style="text-align:center;padding:var(--space-6);">No subjects assigned to this section. Set up in Course Mapping tab.</td></tr>';
+  document.getElementById('generate-summary').textContent = `${totalPeriods} periods/week · 48 slots (8 × 6) · Teacher limit: ${6}/day`;
+  updateGenerateBtn();
+}
+
+function updateGenerateBtn() {
+  const sec = DATA.classes.find(c => c.id === selectedClassId)?.sections.find(s => s.id === selectedSectionId);
+  if (!sec) return;
+  let ready = true;
+  for (const subId of sec.subjects) {
+    const sub = getSubject(subId);
+    if (!sub) continue;
+    const ppw = sub.sectionPeriods?.[selectedSectionId] ?? sub.classPeriods?.[selectedClassId] ?? 0;
+    if (ppw === 0) { ready = false; break; }
+    const mapped = DATA.teacherSubjectMap.filter(m => m.subjectId === subId && m.classId === selectedClassId).length;
+    if (mapped === 0) { ready = false; break; }
+    if (!teacherSelections[subId]) { ready = false; break; }
+  }
+  document.getElementById('btn-generate').disabled = !ready;
+}
+
+async function generateTimetable() {
+  document.getElementById('btn-generate').disabled = true;
+  document.getElementById('btn-generate').textContent = '⏳ Generating...';
+  try {
+    const resp = await fetch('/api/tt/generate', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ sectionId: selectedSectionId, classId: selectedClassId, teacherSelections }) });
+    const result = await resp.json();
+    if (result.error) throw new Error(result.error);
+    generatedGrid = result.grid;
+    generateWarnings = result.warnings || [];
+    document.getElementById('generate-panel').style.display = 'none';
+    document.getElementById('generated-actions').style.display = '';
+    // Show inline warnings
+    if (generateWarnings.length > 0) {
+      document.getElementById('gen-warnings-inline').innerHTML = generateWarnings.map(w => `<p class="text-sm" style="color:var(--color-warning);margin:2px 0;">⚠️ <strong>${w.subjectName}:</strong> ${w.message}</p>`).join('');
+    } else {
+      document.getElementById('gen-warnings-inline').innerHTML = '';
+    }
+    renderGrid(); renderPeriodSummary();
+  } catch (err) {
+    alert('Generate failed: ' + err.message);
+  }
+  document.getElementById('btn-generate').disabled = false;
+  document.getElementById('btn-generate').textContent = '⚡ Generate Timetable';
+}
+
+function discardGenerated() {
+  generatedGrid = null; generateWarnings = [];
+  document.getElementById('generated-actions').style.display = 'none';
+  document.getElementById('generate-panel').style.display = '';
+  renderGrid(); renderPeriodSummary();
+}
+
+function regenerate() { discardGenerated(); generateTimetable(); }
+
+async function applyGenerated() {
+  if (!generatedGrid) return;
+  try {
+    await fetch('/api/tt/apply', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ sectionId: selectedSectionId, grid: generatedGrid }) });
+    DATA.timetable[selectedSectionId] = generatedGrid;
+    generatedGrid = null; generateWarnings = [];
+    document.getElementById('generated-actions').style.display = 'none';
+    setMode('create');
+    renderGrid(); renderPeriodSummary();
+  } catch (err) { alert('Failed to apply: ' + err.message); }
+}
+
+// ═══════════════════════════════════════════════════════
+// SECTIONS MANAGER
+// ═══════════════════════════════════════════════════════
+function renderSectionsManager() {
+  let html = '';
+  for (const cls of DATA.classes) {
+    html += `<div class="mb-6"><h4 style="margin-bottom:var(--space-3);">${cls.name}</h4>`;
+    if (cls.sections.length === 0) {
+      html += '<p class="text-muted text-sm">No sections yet.</p>';
+    } else {
+      html += '<div class="d-flex gap-2 mb-3" style="flex-wrap:wrap;">';
+      for (const sec of cls.sections) {
+        html += `<div class="section-card d-flex align-center gap-2" style="cursor:default;"><span style="font-weight:600;">Section ${sec.name}</span><span class="badge badge-info">${sec.subjects.length} subj</span><button class="btn btn-danger btn-sm" style="padding:2px 8px;font-size:0.7rem;" onclick="deleteSection('${sec.id}','${cls.id}')">✕</button></div>`;
+      }
+      html += '</div>';
+    }
+    html += `<div class="d-flex gap-2 align-center"><input type="text" class="form-control" placeholder="Section name (e.g. A)" id="sec-input-${cls.id}" style="max-width:200px;"><button class="btn btn-primary btn-sm" onclick="addSection('${cls.id}')">+ Add Section</button></div></div>`;
+  }
+  document.getElementById('sections-manager').innerHTML = html || '<p class="text-muted">No classes found.</p>';
+}
+
+async function addSection(classId) {
+  const input = document.getElementById('sec-input-' + classId);
+  const name = input.value.trim();
+  if (!name) return;
+  try {
+    const resp = await fetch('/api/tt/sections', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({classId, name}) });
+    const sec = await resp.json();
+    if (sec.error) throw new Error(sec.error);
+    await loadData();
+    input.value = '';
+  } catch (err) { alert('Failed: ' + err.message); }
+}
+
+async function deleteSection(id, classId) {
+  if (!confirm('Delete this section? All its timetable data will be lost.')) return;
+  try {
+    await fetch('/api/tt/sections?id=' + id, { method:'DELETE' });
+    await loadData();
+  } catch (err) { alert('Failed: ' + err.message); }
+}
+
+// ═══════════════════════════════════════════════════════
+// SUBJECT-CLASS MAP
+// ═══════════════════════════════════════════════════════
+function renderSubjectClassMap() {
+  let html = '';
+  for (const cls of DATA.classes) {
+    html += `<div class="mb-6"><h4 style="margin-bottom:var(--space-3);">${cls.name}</h4>`;
+    // Subjects assigned
+    const assignedSubs = DATA.subjects.filter(s => (s.classIds || []).includes(cls.id));
+    if (assignedSubs.length > 0) {
+      html += '<div class="table-wrapper mb-3"><table class="data-table"><thead><tr><th>Course</th><th>Periods/Week</th><th></th></tr></thead><tbody>';
+      for (const sub of assignedSubs) {
+        const ppw = sub.classPeriods?.[cls.id] ?? 0;
+        html += `<tr><td style="font-weight:600;">${sub.name}</td><td><input type="number" min="0" max="20" value="${ppw}" class="form-control" style="width:80px;display:inline;" onchange="updatePPW('${sub.id}','${cls.id}',this.value)"></td><td><button class="btn btn-danger btn-sm" onclick="removeSubjectFromClass('${sub.id}','${cls.id}')">Remove</button></td></tr>`;
+      }
+      html += '</tbody></table></div>';
+    }
+    // Add subject
+    const unassigned = DATA.subjects.filter(s => !(s.classIds || []).includes(cls.id));
+    if (unassigned.length > 0) {
+      html += `<div class="d-flex gap-2 align-center"><select class="form-control" id="add-sub-${cls.id}" style="max-width:250px;"><option value="">Add a course...</option>`;
+      for (const sub of unassigned) html += `<option value="${sub.id}">${sub.name}</option>`;
+      html += `</select><button class="btn btn-primary btn-sm" onclick="addSubjectToClass('${cls.id}')">+ Add</button></div>`;
+    }
+    html += '</div>';
+  }
+  document.getElementById('subject-class-map').innerHTML = html || '<p class="text-muted">No classes found.</p>';
+}
+
+async function addSubjectToClass(classId) {
+  const sel = document.getElementById('add-sub-' + classId);
+  const subjectId = sel.value;
+  if (!subjectId) return;
+  try {
+    await fetch('/api/tt/subject-classes', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({subjectId, classId, periodsPerWeek: 0}) });
+    await loadData();
+  } catch (err) { alert('Failed: ' + err.message); }
+}
+
+async function removeSubjectFromClass(subjectId, classId) {
+  try {
+    await fetch(`/api/tt/subject-classes?subjectId=${subjectId}&classId=${classId}`, { method:'DELETE' });
+    await loadData();
+  } catch (err) { alert('Failed: ' + err.message); }
+}
+
+async function updatePPW(subjectId, classId, value) {
+  try {
+    await fetch('/api/tt/subject-classes', { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({subjectId, classId, periodsPerWeek: parseInt(value) || 0}) });
+    // Update local state
+    const sub = DATA.subjects.find(s => s.id === subjectId);
+    if (sub) { if (!sub.classPeriods) sub.classPeriods = {}; sub.classPeriods[classId] = parseInt(value) || 0; }
+  } catch (err) { alert('Failed: ' + err.message); }
+}
+
+// ═══════════════════════════════════════════════════════
+// TEACHER MAP
+// ═══════════════════════════════════════════════════════
+function renderTeacherMap() {
+  let html = '';
+  // Show existing mappings
+  const mappings = DATA.teacherSubjectMap;
+  if (mappings.length > 0) {
+    html += '<div class="table-wrapper mb-4"><table class="data-table"><thead><tr><th>Faculty</th><th>Course</th><th>Class</th><th></th></tr></thead><tbody>';
+    for (const m of mappings) {
+      const t = getTeacher(m.teacherId); const s = getSubject(m.subjectId); const c = DATA.classes.find(cl => cl.id === m.classId);
+      html += `<tr><td>${t?.name || '?'}</td><td>${s?.name || '?'}</td><td>${c?.name || '?'}</td><td><button class="btn btn-danger btn-sm" onclick="removeTeacherMap('${m.teacherId}','${m.subjectId}','${m.classId}','${m.sectionId || ''}')">✕</button></td></tr>`;
+    }
+    html += '</tbody></table></div>';
+  }
+  // Add new mapping
+  html += '<div class="d-flex gap-2 align-center" style="flex-wrap:wrap;">';
+  html += '<select class="form-control" id="tm-teacher" style="max-width:200px;"><option value="">Faculty...</option>';
+  for (const t of DATA.teachers) html += `<option value="${t.id}">${t.name}</option>`;
+  html += '</select>';
+  html += '<select class="form-control" id="tm-subject" style="max-width:200px;"><option value="">Course...</option>';
+  for (const s of DATA.subjects) html += `<option value="${s.id}">${s.name}</option>`;
+  html += '</select>';
+  html += '<select class="form-control" id="tm-class" style="max-width:200px;"><option value="">Class...</option>';
+  for (const c of DATA.classes) html += `<option value="${c.id}">${c.name}</option>`;
+  html += '</select>';
+  html += '<button class="btn btn-primary btn-sm" onclick="addTeacherMap()">+ Add Mapping</button></div>';
+  document.getElementById('teacher-map-manager').innerHTML = html;
+}
+
+async function addTeacherMap() {
+  const teacherId = document.getElementById('tm-teacher').value;
+  const subjectId = document.getElementById('tm-subject').value;
+  const classId = document.getElementById('tm-class').value;
+  if (!teacherId || !subjectId || !classId) return alert('Please select faculty, course, and class');
+  try {
+    await fetch('/api/tt/teacher-subject-map', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({teacherId, subjectId, classId}) });
+    await loadData();
+  } catch (err) { alert('Failed: ' + err.message); }
+}
+
+async function removeTeacherMap(teacherId, subjectId, classId, sectionId) {
+  try {
+    let url = `/api/tt/teacher-subject-map?teacherId=${teacherId}&subjectId=${subjectId}&classId=${classId}`;
+    if (sectionId) url += `&sectionId=${sectionId}`;
+    await fetch(url, { method:'DELETE' });
+    await loadData();
+  } catch (err) { alert('Failed: ' + err.message); }
+}
+</script>
+
+<%- include('../partials/layout-bottom') %>

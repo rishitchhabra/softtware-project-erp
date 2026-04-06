@@ -1,0 +1,97 @@
+<%- include('../partials/layout-top') %>
+
+<div class="page-header">
+  <div>
+    <h1><%= course.title %></h1>
+    <p class="page-header-subtitle"><%= course.code || '' %> <% if (course.classes) { %>· <%= course.classes.name %><% } %></p>
+  </div>
+  <div class="btn-group">
+    <button class="btn btn-primary" onclick="openModal('addModuleModal')">+ Add Module</button>
+    <button class="btn btn-outline" onclick="openModal('addLessonModal')">+ Add Lesson</button>
+  </div>
+</div>
+
+<div class="grid" style="grid-template-columns: 2fr 1fr;">
+  <div>
+    <h3 class="mb-4">📖 Course Content</h3>
+    <% if (modules.length === 0) { %>
+      <div class="card"><div class="empty-state" style="padding:var(--space-8) 0;"><div class="empty-state-icon">📖</div><h3>No Modules Yet</h3><p>Add your first module to start building course content.</p></div></div>
+    <% } else { %>
+      <% modules.forEach((m, mi) => { %>
+      <div class="card mb-4 animate-fade-in-up stagger-<%= mi + 1 %>">
+        <div class="card-header"><h4>Module <%= mi + 1 %>: <%= m.title %></h4><span class="badge badge-primary"><%= (m.lessons || []).length %> lessons</span></div>
+        <div class="card-body">
+          <% if (m.lessons && m.lessons.length > 0) { %>
+            <% m.lessons.forEach(l => { %>
+            <div class="list-item">
+              <span style="font-size:1.2rem;"><%= l.content_type === 'video' ? '🎬' : l.content_type === 'document' ? '📄' : l.content_type === 'link' ? '🔗' : '📝' %></span>
+              <div class="list-item-content">
+                <div class="list-item-title"><%= l.title %></div>
+                <div class="list-item-subtitle"><%= l.content_type %><% if (l.content_url) { %> · <a href="<%= l.content_url %>" target="_blank">Open</a><% } %></div>
+              </div>
+            </div>
+            <% }) %>
+          <% } else { %><p class="text-muted text-sm">No lessons in this module yet.</p><% } %>
+        </div>
+      </div>
+      <% }) %>
+    <% } %>
+  </div>
+
+  <div>
+    <div class="card mb-4">
+      <div class="card-header"><h4>👨‍🎓 Enrolled Students</h4><span class="badge badge-primary"><%= enrolledStudents.length %></span></div>
+      <div class="card-body">
+        <% if (enrolledStudents.length === 0) { %><p class="text-muted text-sm">No students enrolled.</p>
+        <% } else { %>
+          <% enrolledStudents.forEach(s => { %>
+          <div class="list-item" style="padding:var(--space-2) 0;">
+            <div class="avatar avatar-sm"><%= (s.full_name || '?').substring(0,2).toUpperCase() %></div>
+            <div class="list-item-content"><div class="list-item-title" style="font-size:var(--font-size-sm);"><%= s.full_name %></div></div>
+          </div>
+          <% }) %>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Module Modal -->
+<div class="modal-overlay" id="addModuleModal">
+  <div class="modal">
+    <div class="modal-header"><h3>Add Module</h3><button class="modal-close" onclick="closeModal('addModuleModal')">✕</button></div>
+    <form method="POST" action="/faculty/courses/<%= course.id %>/modules">
+      <div class="modal-body">
+        <div class="form-group"><label class="form-label">Module Title</label><input type="text" name="title" class="form-control" required></div>
+        <div class="form-group"><label class="form-label">Order</label><input type="number" name="order_index" class="form-control" value="<%= modules.length + 1 %>" min="1"></div>
+      </div>
+      <div class="modal-footer"><button type="button" class="btn btn-outline" onclick="closeModal('addModuleModal')">Cancel</button><button type="submit" class="btn btn-primary">Add Module</button></div>
+    </form>
+  </div>
+</div>
+
+<!-- Add Lesson Modal -->
+<div class="modal-overlay" id="addLessonModal">
+  <div class="modal">
+    <div class="modal-header"><h3>Add Lesson</h3><button class="modal-close" onclick="closeModal('addLessonModal')">✕</button></div>
+    <form method="POST" action="/faculty/courses/<%= course.id %>/lessons">
+      <div class="modal-body">
+        <div class="form-group"><label class="form-label">Module</label>
+          <select name="module_id" class="form-control" required><option value="">Select module</option><% modules.forEach(m => { %><option value="<%= m.id %>"><%= m.title %></option><% }) %></select>
+        </div>
+        <div class="form-group"><label class="form-label">Lesson Title</label><input type="text" name="title" class="form-control" required></div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Content Type</label>
+            <select name="content_type" class="form-control"><option value="text">Text</option><option value="video">Video</option><option value="document">Document</option><option value="link">Link</option></select>
+          </div>
+          <div class="form-group"><label class="form-label">Order</label><input type="number" name="order_index" class="form-control" value="1" min="1"></div>
+        </div>
+        <div class="form-group"><label class="form-label">Content URL (for video/document/link)</label><input type="url" name="content_url" class="form-control"></div>
+        <div class="form-group"><label class="form-label">Content Text</label><textarea name="content_text" class="form-control" rows="3"></textarea></div>
+      </div>
+      <div class="modal-footer"><button type="button" class="btn btn-outline" onclick="closeModal('addLessonModal')">Cancel</button><button type="submit" class="btn btn-primary">Add Lesson</button></div>
+    </form>
+  </div>
+</div>
+
+<%- include('../partials/layout-bottom') %>

@@ -1,0 +1,51 @@
+<%- include('../partials/layout-top') %>
+
+<div class="page-header"><div><h1>📈 Grading</h1><p class="page-header-subtitle"><%= submissions.length %> submissions to review</p></div></div>
+
+<div class="card animate-fade-in">
+  <div class="table-wrapper">
+    <table class="data-table">
+      <thead><tr><th>Student</th><th>Assignment</th><th>Submitted</th><th>Status</th><th>Marks</th><th>Actions</th></tr></thead>
+      <tbody>
+        <% if (submissions.length === 0) { %>
+          <tr><td colspan="6" style="text-align:center;padding:var(--space-10);color:var(--color-text-muted);">No submissions to grade.</td></tr>
+        <% } else { %>
+          <% submissions.forEach(s => { %>
+          <tr>
+            <td><div class="d-flex align-center gap-2"><div class="avatar avatar-sm"><%= (s.student?.full_name || '?').substring(0,2).toUpperCase() %></div><%= s.student?.full_name || '—' %></div></td>
+            <td><%= s.assignment?.title || '—' %></td>
+            <td class="text-sm text-muted"><%= new Date(s.submitted_at).toLocaleDateString('en-IN', {day:'numeric',month:'short'}) %></td>
+            <td><span class="badge <%= s.status === 'graded' ? 'badge-success' : s.status === 'late' ? 'badge-danger' : 'badge-warning' %>"><%= s.status %></span></td>
+            <td><% if (s.marks_obtained !== null) { %><strong><%= s.marks_obtained %></strong>/<%= s.assignment?.max_marks || '?' %><% } else { %>—<% } %></td>
+            <td>
+              <% if (s.status !== 'graded') { %>
+              <button class="btn btn-primary btn-sm" onclick="openModal('gradeModal<%= s.id %>')">Grade</button>
+              <% } else { %><span class="text-success text-sm">✓ Graded</span><% } %>
+            </td>
+          </tr>
+          <!-- Grade Modal -->
+          <div class="modal-overlay" id="gradeModal<%= s.id %>">
+            <div class="modal">
+              <div class="modal-header"><h3>Grade Submission</h3><button class="modal-close" onclick="closeModal('gradeModal<%= s.id %>')">✕</button></div>
+              <form method="POST" action="/faculty/grades/<%= s.id %>">
+                <div class="modal-body">
+                  <p><strong>Student:</strong> <%= s.student?.full_name %> · <strong>Assignment:</strong> <%= s.assignment?.title %></p>
+                  <% if (s.text_content) { %><div class="card p-4 mb-4" style="background:var(--color-bg-secondary);"><p style="margin:0;"><%= s.text_content %></p></div><% } %>
+                  <% if (s.file_url) { %><p><a href="<%= s.file_url %>" target="_blank" class="btn btn-outline btn-sm">📎 View Submitted File</a></p><% } %>
+                  <div class="form-row">
+                    <div class="form-group"><label class="form-label">Marks (out of <%= s.assignment?.max_marks || 100 %>)</label><input type="number" name="marks_obtained" class="form-control" min="0" max="<%= s.assignment?.max_marks || 100 %>" required></div>
+                  </div>
+                  <div class="form-group"><label class="form-label">Feedback</label><textarea name="feedback" class="form-control" rows="3"></textarea></div>
+                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-outline" onclick="closeModal('gradeModal<%= s.id %>')">Cancel</button><button type="submit" class="btn btn-success">Submit Grade</button></div>
+              </form>
+            </div>
+          </div>
+          <% }) %>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<%- include('../partials/layout-bottom') %>

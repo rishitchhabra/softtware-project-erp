@@ -1,0 +1,95 @@
+<%- include('../partials/layout-top') %>
+
+<div class="page-header">
+  <div>
+    <h1>👨‍🎓 Student Management</h1>
+    <p class="page-header-subtitle"><%= students.length %> students registered</p>
+  </div>
+  <button class="btn btn-primary" onclick="openModal('addStudentModal')">+ Add Student</button>
+</div>
+
+<div class="card animate-fade-in">
+  <div class="table-wrapper">
+    <table class="data-table" id="studentsTable">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>User ID</th>
+          <th>Phone</th>
+          <th>Class</th>
+          <th>Joined</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (students.length === 0) { %>
+          <tr><td colspan="6" style="text-align:center;padding:var(--space-10);color:var(--color-text-muted);">No students found. Add your first student above.</td></tr>
+        <% } else { %>
+          <% students.forEach(s => { %>
+          <tr>
+            <td><div class="d-flex align-center gap-3"><div class="avatar avatar-sm"><%= (s.full_name || '?').substring(0,2).toUpperCase() %></div><strong><%= s.full_name || '—' %></strong></div></td>
+            <td><span class="badge badge-info"><%= s.user_id %></span></td>
+            <td><%= s.phone || '—' %></td>
+            <td><% if (s.classes) { %><span class="badge badge-primary"><%= s.classes.name %></span><% } else { %><span class="text-muted">—</span><% } %></td>
+            <td class="text-muted text-sm"><%= new Date(s.created_at).toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'}) %></td>
+            <td>
+              <form method="POST" action="/admin/students/<%= s.id %>/delete" id="delStudent<%= s.id %>" style="display:inline;">
+                <button type="button" class="btn btn-ghost btn-sm" style="color:var(--color-danger);" onclick="confirmDelete('Delete this student?','delStudent<%= s.id %>')">🗑️</button>
+              </form>
+            </td>
+          </tr>
+          <% }) %>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Add Student Modal -->
+<div class="modal-overlay" id="addStudentModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Add New Student</h3>
+      <button class="modal-close" onclick="closeModal('addStudentModal')">✕</button>
+    </div>
+    <form method="POST" action="/admin/students">
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Full Name</label>
+          <input type="text" name="full_name" class="form-control" placeholder="Student name" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">User ID</label>
+            <input type="text" name="user_id" class="form-control" placeholder="e.g. STU001" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <input type="password" name="password" class="form-control" placeholder="Min 6 chars" minlength="6" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Phone</label>
+            <input type="tel" name="phone" class="form-control" placeholder="+91 XXXXX XXXXX">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Class</label>
+            <select name="class_id" class="form-control">
+              <option value="">Select class</option>
+              <% classes.forEach(c => { %>
+                <option value="<%= c.id %>"><%= c.name %></option>
+              <% }) %>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeModal('addStudentModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary">Add Student</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<%- include('../partials/layout-bottom') %>

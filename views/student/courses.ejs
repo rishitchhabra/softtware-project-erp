@@ -1,0 +1,22 @@
+<%- include('../partials/layout-top') %>
+
+<div class="page-header"><div><h1>📚 My Courses</h1><p class="page-header-subtitle"><%= myCourses.length %> enrolled courses</p></div></div>
+
+<% if (myCourses.length === 0) { %>
+  <div class="card"><div class="empty-state"><div class="empty-state-icon">📚</div><h3>No Courses</h3><p>You haven't been enrolled in any courses yet.</p></div></div>
+<% } else { %>
+  <div class="grid grid-auto-fill">
+    <% myCourses.forEach(c => { %>
+    <a href="/student/courses/<%= c.id %>" class="card animate-fade-in-up" style="text-decoration:none;">
+      <div class="d-flex justify-between align-center mb-3">
+        <span class="badge badge-info"><%= c.code || 'N/A' %></span>
+        <span class="badge badge-success"><%= c.status %></span>
+      </div>
+      <h3 style="margin-bottom:var(--space-2);"><%= c.title %></h3>
+      <p class="text-sm text-muted" style="margin:0;"><% if (c.classes) { %>Class: <%= c.classes.name %><% } %></p>
+    </a>
+    <% }) %>
+  </div>
+<% } %>
+
+<%- include('../partials/layout-bottom') %>

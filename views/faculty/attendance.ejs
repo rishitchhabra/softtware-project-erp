@@ -1,0 +1,49 @@
+<%- include('../partials/layout-top') %>
+
+<div class="page-header"><div><h1>✅ Mark Attendance</h1><p class="page-header-subtitle">Select a class and date</p></div></div>
+
+<div class="card mb-6">
+  <form method="GET" action="/faculty/attendance" class="d-flex gap-4 align-center flex-wrap">
+    <div class="form-group" style="margin:0;flex:1;min-width:200px;">
+      <select name="class_id" class="form-control" onchange="this.form.submit()">
+        <option value="">Select class</option>
+        <% myClasses.forEach(c => { %><option value="<%= c.id %>" <%= selectedClass === c.id ? 'selected' : '' %>><%= c.name %></option><% }) %>
+      </select>
+    </div>
+    <div class="form-group" style="margin:0;">
+      <input type="date" name="date" class="form-control" value="<%= selectedDate %>" onchange="this.form.submit()">
+    </div>
+  </form>
+</div>
+
+<% if (selectedClass && students.length > 0) { %>
+<div class="card animate-fade-in">
+  <form method="POST" action="/faculty/attendance">
+    <input type="hidden" name="class_id" value="<%= selectedClass %>">
+    <input type="hidden" name="attendance_date" value="<%= selectedDate %>">
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead><tr><th>Student</th><th>Present</th><th>Absent</th><th>Late</th></tr></thead>
+        <tbody>
+          <% students.forEach(s => { const rec = records.find(r => r.student_id === s.id); const status = rec ? rec.status : ''; %>
+          <tr>
+            <td><div class="d-flex align-center gap-3"><div class="avatar avatar-sm"><%= (s.full_name || '?').substring(0,2).toUpperCase() %></div><strong><%= s.full_name %></strong></div></td>
+            <td><input type="radio" name="status_<%= s.id %>" value="present" <%= status === 'present' ? 'checked' : '' %> required style="accent-color:var(--color-success);width:20px;height:20px;cursor:pointer;"></td>
+            <td><input type="radio" name="status_<%= s.id %>" value="absent" <%= status === 'absent' ? 'checked' : '' %> style="accent-color:var(--color-danger);width:20px;height:20px;cursor:pointer;"></td>
+            <td><input type="radio" name="status_<%= s.id %>" value="late" <%= status === 'late' ? 'checked' : '' %> style="accent-color:var(--color-warning);width:20px;height:20px;cursor:pointer;"></td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+    <div class="card-footer d-flex justify-between align-center">
+      <span class="text-muted text-sm"><%= students.length %> students</span>
+      <button type="submit" class="btn btn-success">💾 Save Attendance</button>
+    </div>
+  </form>
+</div>
+<% } else if (selectedClass) { %>
+  <div class="card"><div class="empty-state"><div class="empty-state-icon">👨‍🎓</div><h3>No Students</h3><p>No students found in this class.</p></div></div>
+<% } %>
+
+<%- include('../partials/layout-bottom') %>

@@ -1,0 +1,102 @@
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <div class="sidebar-brand-logo">🎓</div>
+    <div class="sidebar-brand-text">
+      EduVerse
+      <span>ERP + LMS</span>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <% if (user && user.role === 'admin') { %>
+      <div class="sidebar-section-label">Main</div>
+      <a href="/admin" class="sidebar-link <%= typeof activePage !== 'undefined' && activePage === 'dashboard' ? 'active' : '' %>">
+        <span class="sidebar-link-icon">📊</span> Dashboard
+      </a>
+
+      <div class="sidebar-section-label">Management</div>
+      <a href="/admin/students" class="sidebar-link <%= typeof activePage !== 'undefined' && activePage === 'students' ? 'active' : '' %>">
+        <span class="sidebar-link-icon">👨‍🎓</span> Students
+      </a>
+      <a href="/admin/faculty" class="sidebar-link <%= typeof activePage !== 'undefined' && activePage === 'faculty' ? 'active' : '' %>">
+        <span class="sidebar-link-icon">👨‍🏫</span> Faculty
+      </a>
+      <a href="/admin/classes" class="sidebar-link <%= typeof activePage !== 'undefined' && activePage === 'classes' ? 'active' : '' %>">
+        <span class="sidebar-link-icon">🏛️</span> Classes
+      </a>
+      <a href="/admin/courses" class="sidebar-link <%= typeof activePage !== 'undefined' && activePage === 'courses' ? 'active' : '' %>">
+        <span class="sidebar-link-icon">📚</span> Courses
+      </a>
+
+      <div class="sidebar-section-label">Academic</div>
+      <a href="/admin/timetable" class="sidebar-link <%= typeof activePage !== 'undefined' && activePage === 'timetable' ? 'active' : '' %>">
+        <span class="sidebar-link-icon">📅</span> Timetable
+      </a>
+      <a href="/admin/attendance" class="sidebar-link <%= typeof activePage !== 'undefined' && activePage === 'attendance' ? 'active' : '' %>">
+        <span class="sidebar-link-icon">✅</span> Attendance
+      </a>
+      <a href="/admin/announcements" class="sidebar-link <%= typeof activePage !== 'undefined' && activePage === 'announcements' ? 'active' : '' %>">
+        <span class="sidebar-link-icon">📢</span> Announcements
+      </a>
+
+    <% } else if (user && user.role === 'faculty') { %>
+      <div class="sidebar-section-label">Main</div>
+      <a href="/faculty" class="sidebar-link <%= typeof activePage !== 'undefined' && activePage === 'dashboard' ? 'active' : '' %>">
+        <span class="sidebar-link-icon">📊</span> Dashboard
+      </a>
+
+      <div class="sidebar-section-label">Teaching</div>
+      <a href="/faculty/courses" class="sidebar-link <%= typeof activePage !== 'undefined' && activePage === 'courses' ? 'active' : '' %>">
+        <span class="sidebar-link-icon">📚</span> My Courses
+      </a>
+      <a href="/faculty/assignments" class="sidebar-link <%= typeof activePage !== 'undefined' && activePage === 'assignments' ? 'active' : '' %>">
+        <span class="sidebar-link-icon">📝</span> Assignments
+      </a>
+      <a href="/faculty/grades" class="sidebar-link <%= typeof activePage !== 'undefined' && activePage === 'grades' ? 'active' : '' %>">
+        <span class="sidebar-link-icon">📈</span> Grading
+      </a>
+
+      <div class="sidebar-section-label">Academic</div>
+      <a href="/faculty/attendance" class="sidebar-link <%= typeof activePage !== 'undefined' && activePage === 'attendance' ? 'active' : '' %>">
+        <span class="sidebar-link-icon">✅</span> Attendance
+      </a>
+      <a href="/faculty/announcements" class="sidebar-link <%= typeof activePage !== 'undefined' && activePage === 'announcements' ? 'active' : '' %>">
+        <span class="sidebar-link-icon">📢</span> Announcements
+      </a>
+
+    <% } else if (user && user.role === 'student') { %>
+      <div class="sidebar-section-label">Main</div>
+      <a href="/student" class="sidebar-link <%= typeof activePage !== 'undefined' && activePage === 'dashboard' ? 'active' : '' %>">
+        <span class="sidebar-link-icon">📊</span> Dashboard
+      </a>
+
+      <div class="sidebar-section-label">Learning</div>
+      <a href="/student/courses" class="sidebar-link <%= typeof activePage !== 'undefined' && activePage === 'courses' ? 'active' : '' %>">
+        <span class="sidebar-link-icon">📚</span> My Courses
+      </a>
+      <a href="/student/assignments" class="sidebar-link <%= typeof activePage !== 'undefined' && activePage === 'assignments' ? 'active' : '' %>">
+        <span class="sidebar-link-icon">📝</span> Assignments
+      </a>
+      <a href="/student/grades" class="sidebar-link <%= typeof activePage !== 'undefined' && activePage === 'grades' ? 'active' : '' %>">
+        <span class="sidebar-link-icon">📈</span> My Grades
+      </a>
+
+      <div class="sidebar-section-label">Schedule</div>
+      <a href="/student/timetable" class="sidebar-link <%= typeof activePage !== 'undefined' && activePage === 'timetable' ? 'active' : '' %>">
+        <span class="sidebar-link-icon">📅</span> Timetable
+      </a>
+      <a href="/student/attendance" class="sidebar-link <%= typeof activePage !== 'undefined' && activePage === 'attendance' ? 'active' : '' %>">
+        <span class="sidebar-link-icon">✅</span> Attendance
+      </a>
+      <a href="/student/announcements" class="sidebar-link <%= typeof activePage !== 'undefined' && activePage === 'announcements' ? 'active' : '' %>">
+        <span class="sidebar-link-icon">📢</span> Announcements
+      </a>
+    <% } %>
+  </nav>
+
+  <div class="sidebar-footer">
+    <a href="/logout" class="sidebar-link" style="color: var(--color-danger);">
+      <span class="sidebar-link-icon">🚪</span> Logout
+    </a>
+  </div>
+</aside>

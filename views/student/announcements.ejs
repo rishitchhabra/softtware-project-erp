@@ -1,0 +1,21 @@
+<%- include('../partials/layout-top') %>
+
+<div class="page-header"><div><h1>📢 Announcements</h1></div></div>
+
+<% if (announcements.length === 0) { %>
+  <div class="card"><div class="empty-state"><div class="empty-state-icon">📢</div><h3>No Announcements</h3><p>Announcements from your school will appear here.</p></div></div>
+<% } else { %>
+  <div class="grid" style="gap:var(--space-4);">
+    <% announcements.forEach((a, i) => { %>
+    <div class="card animate-fade-in-up stagger-<%= Math.min(i + 1, 6) %>">
+      <div class="d-flex justify-between align-center mb-2">
+        <h4><%= a.title %></h4>
+        <span class="text-muted text-xs"><%= new Date(a.created_at).toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'}) %></span>
+      </div>
+      <p style="margin:0;"><%= a.content %></p>
+    </div>
+    <% }) %>
+  </div>
+<% } %>
+
+<%- include('../partials/layout-bottom') %>

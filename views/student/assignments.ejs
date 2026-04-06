@@ -1,0 +1,65 @@
+<%- include('../partials/layout-top') %>
+
+<div class="page-header"><div><h1>📝 My Assignments</h1><p class="page-header-subtitle"><%= assignments.length %> assignments</p></div></div>
+
+<div class="card animate-fade-in">
+  <div class="table-wrapper">
+    <table class="data-table">
+      <thead><tr><th>Assignment</th><th>Course</th><th>Due Date</th><th>Marks</th><th>Status</th><th>Action</th></tr></thead>
+      <tbody>
+        <% if (assignments.length === 0) { %>
+          <tr><td colspan="6" style="text-align:center;padding:var(--space-10);color:var(--color-text-muted);">No assignments yet.</td></tr>
+        <% } else { %>
+          <% assignments.forEach(a => {
+            const sub = submissions.find(s => s.assignment_id === a.id);
+            const now = new Date(); const due = new Date(a.due_date);
+            const overdue = due < now && !sub;
+            const status = sub ? sub.status : (overdue ? 'overdue' : 'pending');
+          %>
+          <tr>
+            <td><strong><%= a.title %></strong><% if (a.description) { %><br><span class="text-xs text-muted"><%= a.description.substring(0, 50) %></span><% } %></td>
+            <td><%= a.courses ? a.courses.title : '—' %></td>
+            <td><span class="badge <%= overdue ? 'badge-danger' : 'badge-primary' %>"><%= due.toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'}) %></span></td>
+            <td><% if (sub && sub.marks_obtained !== null) { %><strong><%= sub.marks_obtained %></strong>/<%= a.max_marks %><% } else { %><%= a.max_marks %><% } %></td>
+            <td><span class="badge <%= status === 'graded' ? 'badge-success' : status === 'submitted' ? 'badge-primary' : status === 'overdue' ? 'badge-danger' : 'badge-warning' %>"><%= status %></span></td>
+            <td>
+              <% if (!sub || sub.status !== 'graded') { %>
+                <button class="btn btn-primary btn-sm" onclick="openModal('submitModal<%= a.id %>')"><%= sub ? 'Resubmit' : 'Submit' %></button>
+              <% } else { %>
+                <% if (sub.feedback) { %><button class="btn btn-ghost btn-sm" onclick="openModal('feedbackModal<%= a.id %>')">View Feedback</button><% } %>
+              <% } %>
+            </td>
+          </tr>
+          <!-- Submit Modal -->
+          <div class="modal-overlay" id="submitModal<%= a.id %>">
+            <div class="modal">
+              <div class="modal-header"><h3>Submit: <%= a.title %></h3><button class="modal-close" onclick="closeModal('submitModal<%= a.id %>')">✕</button></div>
+              <form method="POST" action="/student/assignments/submit">
+                <input type="hidden" name="assignment_id" value="<%= a.id %>">
+                <div class="modal-body">
+                  <p class="text-sm text-muted mb-4"><strong>Due:</strong> <%= due.toLocaleDateString('en-IN') %> · <strong>Max Marks:</strong> <%= a.max_marks %></p>
+                  <div class="form-group"><label class="form-label">Your Answer / Work</label><textarea name="text_content" class="form-control" rows="6" placeholder="Type your answer here..." required><%= sub ? sub.text_content || '' : '' %></textarea></div>
+                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-outline" onclick="closeModal('submitModal<%= a.id %>')">Cancel</button><button type="submit" class="btn btn-success">Submit</button></div>
+              </form>
+            </div>
+          </div>
+          <% if (sub && sub.feedback) { %>
+          <div class="modal-overlay" id="feedbackModal<%= a.id %>">
+            <div class="modal">
+              <div class="modal-header"><h3>Feedback: <%= a.title %></h3><button class="modal-close" onclick="closeModal('feedbackModal<%= a.id %>')">✕</button></div>
+              <div class="modal-body">
+                <p><strong>Marks:</strong> <%= sub.marks_obtained %>/<%= a.max_marks %></p>
+                <div class="card p-4 mt-3" style="background:var(--color-bg-secondary);"><p style="margin:0;"><%= sub.feedback %></p></div>
+              </div>
+            </div>
+          </div>
+          <% } %>
+          <% }) %>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<%- include('../partials/layout-bottom') %>

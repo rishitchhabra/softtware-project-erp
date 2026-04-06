@@ -1,0 +1,60 @@
+<%- include('../partials/layout-top') %>
+
+<div class="page-header">
+  <div><h1>📚 Course Management</h1><p class="page-header-subtitle"><%= courses.length %> courses</p></div>
+  <button class="btn btn-primary" onclick="openModal('addCourseModal')">+ Create Course</button>
+</div>
+
+<div class="card animate-fade-in">
+  <div class="table-wrapper">
+    <table class="data-table">
+      <thead><tr><th>Code</th><th>Title</th><th>Class</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead>
+      <tbody>
+        <% if (courses.length === 0) { %>
+          <tr><td colspan="6" style="text-align:center;padding:var(--space-10);color:var(--color-text-muted);">No courses yet.</td></tr>
+        <% } else { %>
+          <% courses.forEach(c => { %>
+          <tr>
+            <td><span class="badge badge-info"><%= c.code || '—' %></span></td>
+            <td><strong><%= c.title %></strong><% if (c.description) { %><br><span class="text-muted text-xs"><%= c.description.substring(0, 60) %></span><% } %></td>
+            <td><%= c.classes ? c.classes.name : '—' %></td>
+            <td><span class="badge <%= c.status === 'active' ? 'badge-success' : 'badge-secondary' %>"><%= c.status %></span></td>
+            <td class="text-muted text-sm"><%= new Date(c.created_at).toLocaleDateString('en-IN', {day:'numeric',month:'short'}) %></td>
+            <td>
+              <form method="POST" action="/admin/courses/<%= c.id %>/delete" id="delCourse<%= c.id %>" style="display:inline;">
+                <button type="button" class="btn btn-ghost btn-sm" style="color:var(--color-danger);" onclick="confirmDelete('Delete course?','delCourse<%= c.id %>')">🗑️</button>
+              </form>
+            </td>
+          </tr>
+          <% }) %>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal-overlay" id="addCourseModal">
+  <div class="modal">
+    <div class="modal-header"><h3>Create Course</h3><button class="modal-close" onclick="closeModal('addCourseModal')">✕</button></div>
+    <form method="POST" action="/admin/courses">
+      <div class="modal-body">
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Course Title</label><input type="text" name="title" class="form-control" required></div>
+          <div class="form-group"><label class="form-label">Course Code</label><input type="text" name="code" class="form-control" placeholder="e.g. MATH101"></div>
+        </div>
+        <div class="form-group"><label class="form-label">Description</label><textarea name="description" class="form-control" rows="2"></textarea></div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Assign to Class</label>
+            <select name="class_id" class="form-control"><option value="">Select class</option><% classes.forEach(c => { %><option value="<%= c.id %>"><%= c.name %></option><% }) %></select>
+          </div>
+          <div class="form-group"><label class="form-label">Assign Faculty</label>
+            <select name="faculty_id" class="form-control"><option value="">Select faculty</option><% facultyList.forEach(f => { %><option value="<%= f.id %>"><%= f.full_name %></option><% }) %></select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer"><button type="button" class="btn btn-outline" onclick="closeModal('addCourseModal')">Cancel</button><button type="submit" class="btn btn-primary">Create Course</button></div>
+    </form>
+  </div>
+</div>
+
+<%- include('../partials/layout-bottom') %>

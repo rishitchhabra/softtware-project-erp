@@ -1,0 +1,62 @@
+<%- include('../partials/layout-top') %>
+
+<div class="page-header"><div><h1>📈 My Grades</h1><p class="page-header-subtitle">View your academic performance</p></div></div>
+
+<% if (submissions.length === 0 && grades.length === 0) { %>
+  <div class="card"><div class="empty-state"><div class="empty-state-icon">📈</div><h3>No Grades Yet</h3><p>Your grades will appear here once your work is graded.</p></div></div>
+<% } else { %>
+  <% if (submissions.length > 0) { %>
+  <div class="card mb-6 animate-fade-in">
+    <div class="card-header"><h3>📝 Graded Assignments</h3></div>
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead><tr><th>Assignment</th><th>Course</th><th>Marks</th><th>Percentage</th><th>Feedback</th></tr></thead>
+        <tbody>
+          <% submissions.forEach(s => { const pct = s.assignment ? Math.round((s.marks_obtained / s.assignment.max_marks) * 100) : 0; %>
+          <tr>
+            <td><strong><%= s.assignment ? s.assignment.title : '—' %></strong></td>
+            <td><%= s.assignment && s.assignment.courses ? s.assignment.courses.title : '—' %></td>
+            <td><strong><%= s.marks_obtained %></strong> / <%= s.assignment ? s.assignment.max_marks : '?' %></td>
+            <td>
+              <div class="d-flex align-center gap-3">
+                <div class="progress" style="flex:1;"><div class="progress-bar <%= pct >= 70 ? 'success' : pct >= 40 ? 'warning' : 'danger' %>" style="width:<%= pct %>%;"></div></div>
+                <span class="text-sm font-semibold"><%= pct %>%</span>
+              </div>
+            </td>
+            <td><% if (s.feedback) { %><span class="text-sm"><%= s.feedback.substring(0, 50) %><%= s.feedback.length > 50 ? '...' : '' %></span><% } else { %>—<% } %></td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <% } %>
+
+  <% if (grades.length > 0) { %>
+  <div class="card animate-fade-in-up stagger-2">
+    <div class="card-header"><h3>🏆 Exam Grades</h3></div>
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead><tr><th>Course</th><th>Type</th><th>Marks</th><th>Percentage</th></tr></thead>
+        <tbody>
+          <% grades.forEach(g => { const pct = g.max_marks ? Math.round((g.marks_obtained / g.max_marks) * 100) : 0; %>
+          <tr>
+            <td><%= g.courses ? g.courses.title : '—' %></td>
+            <td><span class="badge badge-info"><%= g.exam_type %></span></td>
+            <td><strong><%= g.marks_obtained %></strong> / <%= g.max_marks %></td>
+            <td>
+              <div class="d-flex align-center gap-3">
+                <div class="progress" style="flex:1;"><div class="progress-bar <%= pct >= 70 ? 'success' : pct >= 40 ? 'warning' : 'danger' %>" style="width:<%= pct %>%;"></div></div>
+                <span class="text-sm font-semibold"><%= pct %>%</span>
+              </div>
+            </td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <% } %>
+<% } %>
+
+<%- include('../partials/layout-bottom') %>

@@ -1,0 +1,38 @@
+<%- include('../partials/layout-top') %>
+
+<div class="page-header">
+  <div>
+    <h1><%= course.title %></h1>
+    <p class="page-header-subtitle"><%= course.code || '' %> <% if (course.classes) { %>· <%= course.classes.name %><% } %> <% if (faculty.length > 0) { %>· <%= faculty.map(f => f.full_name).join(', ') %><% } %></p>
+  </div>
+  <a href="/student/courses" class="btn btn-outline">← Back to Courses</a>
+</div>
+
+<% if (modules.length === 0) { %>
+  <div class="card"><div class="empty-state" style="padding:var(--space-10) 0;"><div class="empty-state-icon">📖</div><h3>No Content Yet</h3><p>Your instructor hasn't added content to this course yet.</p></div></div>
+<% } else { %>
+  <% modules.forEach((m, mi) => { %>
+  <div class="card mb-4 animate-fade-in-up stagger-<%= Math.min(mi + 1, 6) %>">
+    <div class="card-header">
+      <h3>Module <%= mi + 1 %>: <%= m.title %></h3>
+      <span class="badge badge-primary"><%= (m.lessons || []).length %> lessons</span>
+    </div>
+    <div class="card-body">
+      <% if (m.lessons && m.lessons.length > 0) { %>
+        <% m.lessons.forEach(l => { %>
+        <div class="list-item">
+          <span style="font-size:1.4rem;"><%= l.content_type === 'video' ? '🎬' : l.content_type === 'document' ? '📄' : l.content_type === 'link' ? '🔗' : '📝' %></span>
+          <div class="list-item-content">
+            <div class="list-item-title"><%= l.title %></div>
+            <% if (l.content_text) { %><div class="list-item-subtitle" style="margin-top:var(--space-2);color:var(--color-text-secondary);"><%= l.content_text %></div><% } %>
+            <% if (l.content_url) { %><div class="mt-2"><a href="<%= l.content_url %>" target="_blank" class="btn btn-outline btn-sm">Open Resource →</a></div><% } %>
+          </div>
+        </div>
+        <% }) %>
+      <% } else { %><p class="text-muted text-sm">No lessons in this module yet.</p><% } %>
+    </div>
+  </div>
+  <% }) %>
+<% } %>
+
+<%- include('../partials/layout-bottom') %>

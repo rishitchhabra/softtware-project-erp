@@ -1,0 +1,29 @@
+<%- include('../partials/layout-top') %>
+
+<div class="page-header"><div><h1>📅 My Timetable</h1><p class="page-header-subtitle">Weekly class schedule</p></div></div>
+
+<% if (entries.length === 0) { %>
+  <div class="card"><div class="empty-state"><div class="empty-state-icon">📅</div><h3>No Timetable</h3><p><% if (!user.class_id) { %>You haven't been assigned to a class yet. Contact your admin.<% } else { %>No timetable entries for your class yet.<% } %></p></div></div>
+<% } else { %>
+  <% const days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']; %>
+  <div class="card animate-fade-in">
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead><tr><th>Day</th><th>Time</th><th>Subject</th><th>Faculty</th><th>Room</th></tr></thead>
+        <tbody>
+          <% days.forEach(day => { const dayEntries = entries.filter(e => e.day_of_week === day); if (dayEntries.length > 0) { dayEntries.forEach((e, i) => { %>
+          <tr>
+            <% if (i === 0) { %><td rowspan="<%= dayEntries.length %>" style="font-weight:600;vertical-align:top;background:var(--color-bg-hover);"><%= day %></td><% } %>
+            <td><span class="badge badge-primary"><%= e.start_time %> - <%= e.end_time %></span></td>
+            <td><strong><%= e.courses ? e.courses.title : '—' %></strong></td>
+            <td><%= e.faculty ? e.faculty.full_name : '—' %></td>
+            <td><%= e.room || '—' %></td>
+          </tr>
+          <% }) } }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+<% } %>
+
+<%- include('../partials/layout-bottom') %>

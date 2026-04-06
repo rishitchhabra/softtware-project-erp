@@ -1,0 +1,71 @@
+<%- include('../partials/layout-top') %>
+
+<div class="dashboard-welcome animate-fade-in">
+  <h2><%= greeting %>, <%= user.full_name || 'Student' %> 👋</h2>
+  <p>Welcome to your learning portal. Stay on top of your studies!</p>
+</div>
+
+<div class="stats-grid" style="grid-template-columns: repeat(4, 1fr);">
+  <div class="stat-card stat-primary animate-fade-in-up stagger-1">
+    <div class="stat-card-icon">📚</div>
+    <div class="stat-card-value"><%= myCourses.length %></div>
+    <div class="stat-card-label">Enrolled Courses</div>
+  </div>
+  <div class="stat-card stat-warning animate-fade-in-up stagger-2">
+    <div class="stat-card-icon">📝</div>
+    <div class="stat-card-value"><%= upcomingAssignments.length %></div>
+    <div class="stat-card-label">Pending Assignments</div>
+  </div>
+  <div class="stat-card stat-success animate-fade-in-up stagger-3">
+    <div class="stat-card-icon">📈</div>
+    <div class="stat-card-value"><%= recentGrades.length %></div>
+    <div class="stat-card-label">Graded Items</div>
+  </div>
+  <div class="stat-card stat-info animate-fade-in-up stagger-4">
+    <div class="stat-card-icon">📢</div>
+    <div class="stat-card-value"><%= announcements.length %></div>
+    <div class="stat-card-label">Announcements</div>
+  </div>
+</div>
+
+<div class="dashboard-grid">
+  <div class="card animate-fade-in-up stagger-5">
+    <div class="card-header"><h3>📚 My Courses</h3><a href="/student/courses" class="btn btn-ghost btn-sm">View All →</a></div>
+    <div class="card-body">
+      <% if (myCourses.length === 0) { %>
+        <div class="empty-state" style="padding:var(--space-6) 0;"><p class="text-muted">No courses enrolled yet.</p></div>
+      <% } else { %>
+        <% myCourses.slice(0, 4).forEach(c => { %>
+        <a href="/student/courses/<%= c.id %>" class="list-item" style="text-decoration:none;">
+          <div class="avatar" style="background:var(--gradient-primary);">📚</div>
+          <div class="list-item-content">
+            <div class="list-item-title"><%= c.title %></div>
+            <div class="list-item-subtitle"><%= c.code || '' %> <% if (c.classes) { %>· <%= c.classes.name %><% } %></div>
+          </div>
+        </a>
+        <% }) %>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="card animate-fade-in-up stagger-6">
+    <div class="card-header"><h3>📢 Announcements</h3><a href="/student/announcements" class="btn btn-ghost btn-sm">View All →</a></div>
+    <div class="card-body">
+      <% if (announcements.length === 0) { %>
+        <p class="text-muted text-sm">No announcements.</p>
+      <% } else { %>
+        <% announcements.slice(0, 4).forEach(a => { %>
+        <div class="activity-item">
+          <div class="activity-dot blue"></div>
+          <div class="activity-content">
+            <div class="activity-text"><strong><%= a.title %></strong></div>
+            <div class="activity-time"><%= new Date(a.created_at).toLocaleDateString('en-IN', {day:'numeric',month:'short'}) %></div>
+          </div>
+        </div>
+        <% }) %>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/layout-bottom') %>

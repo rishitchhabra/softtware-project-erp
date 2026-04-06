@@ -1,0 +1,57 @@
+<%- include('../partials/layout-top') %>
+
+<div class="page-header">
+  <div>
+    <h1>👨‍🏫 Faculty Management</h1>
+    <p class="page-header-subtitle"><%= facultyList.length %> faculty members</p>
+  </div>
+  <button class="btn btn-primary" onclick="openModal('addFacultyModal')">+ Add Faculty</button>
+</div>
+
+<div class="card animate-fade-in">
+  <div class="table-wrapper">
+    <table class="data-table">
+      <thead>
+        <tr><th>Name</th><th>User ID</th><th>Phone</th><th>Joined</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        <% if (facultyList.length === 0) { %>
+          <tr><td colspan="5" style="text-align:center;padding:var(--space-10);color:var(--color-text-muted);">No faculty found.</td></tr>
+        <% } else { %>
+          <% facultyList.forEach(f => { %>
+          <tr>
+            <td><div class="d-flex align-center gap-3"><div class="avatar avatar-sm" style="background:var(--gradient-info);"><%= (f.full_name || '?').substring(0,2).toUpperCase() %></div><strong><%= f.full_name || '—' %></strong></div></td>
+            <td><span class="badge badge-info"><%= f.user_id %></span></td>
+            <td><%= f.phone || '—' %></td>
+            <td class="text-muted text-sm"><%= new Date(f.created_at).toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'}) %></td>
+            <td>
+              <form method="POST" action="/admin/faculty/<%= f.id %>/delete" id="delFac<%= f.id %>" style="display:inline;">
+                <button type="button" class="btn btn-ghost btn-sm" style="color:var(--color-danger);" onclick="confirmDelete('Delete this faculty member?','delFac<%= f.id %>')">🗑️</button>
+              </form>
+            </td>
+          </tr>
+          <% }) %>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal-overlay" id="addFacultyModal">
+  <div class="modal">
+    <div class="modal-header"><h3>Add Faculty</h3><button class="modal-close" onclick="closeModal('addFacultyModal')">✕</button></div>
+    <form method="POST" action="/admin/faculty">
+      <div class="modal-body">
+        <div class="form-group"><label class="form-label">Full Name</label><input type="text" name="full_name" class="form-control" required></div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">User ID</label><input type="text" name="user_id" class="form-control" placeholder="e.g. FAC001" required></div>
+          <div class="form-group"><label class="form-label">Password</label><input type="password" name="password" class="form-control" minlength="6" required></div>
+        </div>
+        <div class="form-group"><label class="form-label">Phone</label><input type="tel" name="phone" class="form-control"></div>
+      </div>
+      <div class="modal-footer"><button type="button" class="btn btn-outline" onclick="closeModal('addFacultyModal')">Cancel</button><button type="submit" class="btn btn-primary">Add Faculty</button></div>
+    </form>
+  </div>
+</div>
+
+<%- include('../partials/layout-bottom') %>

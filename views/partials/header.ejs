@@ -1,0 +1,21 @@
+<header class="top-header">
+  <div class="top-header-left">
+    <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">☰</button>
+    <div class="breadcrumb">
+      <a href="/<%= user ? user.role : '' %>"><%= user ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : '' %></a>
+      <% if (typeof activePage !== 'undefined' && activePage !== 'dashboard') { %>
+        <span class="breadcrumb-sep">›</span>
+        <span><%= activePage.charAt(0).toUpperCase() + activePage.slice(1) %></span>
+      <% } %>
+    </div>
+  </div>
+  <div class="top-header-right">
+    <button class="header-icon-btn" title="Notifications" id="notifBtn">
+      🔔
+      <span class="notification-dot"></span>
+    </button>
+    <div class="avatar avatar-sm">
+      <%= user ? (user.full_name || user.user_id || '?').substring(0, 2).toUpperCase() : '?' %>
+    </div>
+  </div>
+</header>
